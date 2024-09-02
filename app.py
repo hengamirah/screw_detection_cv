@@ -110,7 +110,7 @@ def predict():
 
     # YOLOv8 Model
     elif model_type == 'Screw Detection':
-        path_model_file = r"runs\detect\train2\weights\best.pt"
+        path_model_file = "best.pt"
         
 
     elif model_type == 'Select Model':
