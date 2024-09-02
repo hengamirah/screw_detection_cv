@@ -46,9 +46,9 @@ sympy==1.12
 tbb==2021.11.0
 tenacity==8.5.0
 toml==0.10.2
-torch==2.3.1+cu118
-torchaudio==2.3.1+cu118
-torchvision==0.18.1+cu118
+torch==2.3.1
+torchaudio==2.3.1
+torchvision==0.18.1
 tqdm==4.66.5
 ultralytics==8.2.82
 ultralytics-thop==2.0.5
