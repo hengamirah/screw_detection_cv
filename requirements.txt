@@ -1,7 +1,59 @@
-streamlit==1.27.2
+
+# Usage: pip install -r requirements.txt
+
+# Base ----------------------------------------
+matplotlib>=3.2.2
+numpy>=1.18.5
+opencv-python>=4.1.1
+Pillow>=7.1.2
+PyYAML>=5.3.1
+requests>=2.23.0
+scipy>=1.4.1
 opencv-python-headless==4.8.1.78
-numpy==1.23.5
-Pillow==9.5.0
-pandas
-ultralytics
-torch==2.3.1
+torch>=1.7.0,!=1.12.0
+torchvision>=0.8.1,!=0.13.0
+tqdm>=4.41.0
+protobuf<4.21.3
+
+# Logging -------------------------------------
+tensorboard>=2.4.1
+# wandb
+
+# Plotting ------------------------------------
+pandas>=1.1.4
+seaborn>=0.11.0
+matplotlib>=3.2.2
+numpy>=1.18.5
+opencv-python>=4.1.1
+Pillow>=7.1.2
+PyYAML>=5.3.1
+requests>=2.23.0
+scipy>=1.4.1
+torch==2.3.1,!=1.12.0
+torchvision>=0.8.1,!=0.13.0
+tqdm>=4.41.0
+protobuf<4.21.3
+
+#deployment
+streamlit==1.27.2
+streamlit-authenticator==0.2.2
+streamlit-camera-input-live==0.2.0
+streamlit-card==1.0.2
+streamlit-embedcode==0.1.2
+streamlit-extras==0.3.4
+streamlit-faker==0.0.3
+streamlit-image-coordinates==0.1.9
+streamlit-keyup==0.2.4
+streamlit-lottie==0.0.5
+streamlit-scrollable-textbox==0.0.3
+streamlit-toggle-switch==1.0.2
+streamlit-vertical-slider==2.5.5
+supervision==0.14.0
+
+# Logging -------------------------------------
+tensorboard==2.4.1
+# wandb
+
+# Plotting ------------------------------------
+pandas>=1.1.4
+seaborn>=0.11.0
