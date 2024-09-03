@@ -82,8 +82,7 @@ class MyVideoTransformer(VideoTransformerBase):
         img, current_no_class = get_yolo(img, self.model , self.conf , self.color_pick_list, self.class_labels, self.draw_thick)
         
         
-       
-        self.org_fram.image(image, caption='Original Video', channels="BGR", use_column_width=True)
+        self.org_frame.image(image, caption='Original Video', channels="BGR", use_column_width=True)
         
         processed_image = self._display_detected_frames(image)
         self.ann_frame.image(processed_image, caption='Processed Video', channels="BGR", use_column_width=True)
