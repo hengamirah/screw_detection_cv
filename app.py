@@ -17,8 +17,11 @@ from ultralytics import YOLO
 import io 
 import torch
 from streamlit_webrtc import webrtc_streamer, VideoTransformerBase
-
-
+import os
+import sys
+# Add the 'lib' folder to the Python path
+sys.path.append(os.path.join(os.path.dirname(__file__), 'lap'))
+import lap
 
 st.set_page_config(page_title="Amirah Streamlit App", layout="wide", initial_sidebar_state="auto")
 
