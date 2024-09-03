@@ -10,7 +10,6 @@ opencv-python==4.10.0.84
 opencv-python-headless==4.8.1.78
 pandas==2.2.2
 
-pillow==8.0
 
 py-cpuinfo==9.0.0
 pyarrow==17.0.0
