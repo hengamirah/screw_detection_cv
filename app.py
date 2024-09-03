@@ -202,9 +202,10 @@ def predict():
             elif options == 'Webcam':
                 cam_options = st.sidebar.selectbox('Webcam Channel', ('Select Channel', '0', '1', '2', '3'))
                 vid_file_name = int(cam_options)
-                
+                st.write(vid_file_name)
                 if not cam_options == 'Select Channel':
                     pred1 = st.sidebar.button("Start")
+                    
 
             if pred1:
                 class_names = list(model.names.values())# Convert dictionary to list of class names
@@ -213,6 +214,7 @@ def predict():
                 with st.spinner("Predicting..."):
                     fps_display = st.sidebar.empty()  # Placeholder for FPS display
                     cap = cv2.VideoCapture(vid_file_name)
+                    st.write(vid_file_name)
                     if not cap.isOpened():
                         st.error("Could not open Video.")
                     
