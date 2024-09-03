@@ -8,7 +8,7 @@ mpmath==1.3.0
 numpy==1.26.3
 opencv-python-headless==4.8.1.78
 pandas==2.2.2
-streamlit-webrtc
+
 lap
 
 py-cpuinfo==9.0.0
@@ -36,7 +36,7 @@ streamlit-lottie==0.0.5
 streamlit-scrollable-textbox==0.0.3
 streamlit-toggle-switch==1.0.2
 streamlit-vertical-slider==2.5.5
-
+streamlit-webrtc
 
 
 sympy==1.12
