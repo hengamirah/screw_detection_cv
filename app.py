@@ -16,7 +16,7 @@ from PIL import Image
 from ultralytics import YOLO
 import io 
 import torch
-from streamlit_webrtc import webrtc_streamer, VideoTransformerBase
+from streamlit-webrtc import webrtc_streamer, VideoTransformerBase
 
 
 
@@ -288,10 +288,10 @@ def predict():
             # Web-cam
             elif options == 'Webcam':
                 cam_options = st.sidebar.selectbox('Webcam Channel', ('Select Channel', '0', '1', '2', '3'))
-                vid_file_name = int(cam_options)
-  
+                
                 if not cam_options == 'Select Channel':
-                    pred2 = st.sidebar.button("Start")
+                    #vid_file_name = int(cam_options)
+                    pred2 = st.sidebar.checkbox("Start")
                     if pred2:
                         webrtc_streamer(
                     key="example",
