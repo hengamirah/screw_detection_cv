@@ -10,7 +10,7 @@ from collections import Counter
 import json
 import pandas as pd
 from PIL import ImageColor
-from model_utils import get_system_stat
+#from model_utils import get_system_stat
 import random
 from PIL import Image
 from ultralytics import YOLO

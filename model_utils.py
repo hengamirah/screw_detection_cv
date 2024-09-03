@@ -13,7 +13,7 @@ def get_gpu_memory():
         ], encoding='utf-8')
     gpu_memory = [int(x) for x in result.strip().split('\n')]
     return gpu_memory[0]
-'''
+
 def get_system_stat(stframe1, stframe2, stframe3, fps, df_fq):
     # Updating Inference results
     with stframe1.container():
@@ -54,4 +54,3 @@ def get_system_stat(stframe1, stframe2, stframe3, fps, df_fq):
                 js3_text = st.markdown(f'<h5>{get_gpu_memory()} MB</h5>', unsafe_allow_html=True)
             except:
                 js3_text = st.markdown('<h5>NA</h5>', unsafe_allow_html=True)
-'''
