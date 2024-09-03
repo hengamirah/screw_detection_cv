@@ -16,6 +16,9 @@ from PIL import Image
 from ultralytics import YOLO
 import io 
 import torch
+from streamlit_webrtc import webrtc_streamer, VideoTransformerBase
+
+
 
 st.set_page_config(page_title="Amirah Streamlit App", layout="wide", initial_sidebar_state="auto")
 
@@ -63,9 +66,37 @@ def plot_one_box(x, img, color=None, label=None, line_thickness=3):
         c2 = c1[0] + t_size[0], c1[1] - t_size[1] - 3
         cv2.rectangle(img, c1, c2, color, -1, cv2.LINE_AA)  # filled
         cv2.putText(img, label, (c1[0], c1[1] - 2), 0, tl / 3, [225, 255, 255], thickness=tf, lineType=cv2.LINE_AA)
-    
+
+class MyVideoTransformer(VideoTransformerBase):
+    def __init__(self, conf, model):
+        self.conf = conf
+        self.model = model
+
+    def recv(self, frame):
+        image = frame.to_ndarray(format="bgr24")
+        processed_image = self._display_detected_frames(image)
+        st.image(processed_image, caption='Detected Video', channels="BGR", use_column_width=True)
+
+    def _display_detected_frames(self, image):
+        orig_h, orig_w = image.shape[0:2]
+        width = 720  # Set the desired width for processing
+
+        # cv2.resize used in a forked thread may cause memory leaks
+        input = np.asarray(Image.fromarray(image).resize((width, int(width * orig_h / orig_w))))
+
+        if self.model is not None:
+            # Perform object detection using YOLO model
+            res = self.model.predict(input, conf=self.conf)
+
+            # Plot the detected objects on the video frame
+            res_plotted = res[0].plot()
+            return res_plotted
+
+        return input
+
+
 def predict():        
-    p_time = 0
+    #p_time = 0
 
 
     # Hide main menu style
@@ -125,7 +156,7 @@ def predict():
 
     pred = False
     pred1 = False
-
+    pred2 = False
     if model_type!= 'Select Model':
         
         load = st.sidebar.checkbox("Load Model",key = 'Load Model')
@@ -198,71 +229,78 @@ def predict():
                     #tfile = tempfile.NamedTemporaryFile(delete=False)
                     #tfile.write(upload_video_file.read())
             
+                if pred1:
+        
+                    class_names = list(model.names.values())# Convert dictionary to list of class names
+                    selected_classes = st.sidebar.multiselect("Classes", class_names, default=class_names[:3],key='select_class')
+                        
+                    with st.spinner("Predicting..."):
+                        fps_display = st.sidebar.empty()  # Placeholder for FPS display
+                        
+                        
+                        cap = cv2.VideoCapture(vid_file_name)
+                        st.write(vid_file_name)
+                        if not cap.isOpened():
+                            st.error("Could not open Video.")
+                        
+                        stop_button = st.button("Stop")  # Button to stop the inference
+
+                        while cap.isOpened():
+                            success, frame = cap.read()
+                            if not success:
+                                st.warning("Failed to read frame from webcam. Please make sure the webcam is connected properly.")
+                                break
+                            prev_time = time.time()
+
+                            # Multiselect box with class names and get indices of selected classes
+                            selected_ind = [class_names.index(option) for option in selected_classes]
+                            if not isinstance(selected_ind, list):  # Ensure selected_options is a list
+                                selected_ind = list(selected_ind)
+
+                            results = model.track(frame, conf=confidence, classes=selected_ind, persist=True)
+                            annotated_frame = results[0].plot()  # Add annotations on frame
+                            
+                            # Calculate model FPS
+                            curr_time = time.time()
+                            fps = 1 / (curr_time - prev_time)
+                            prev_time = curr_time
+                            # display frame
+                            org_frame.image(frame, channels="BGR")
+                            ann_frame.image(annotated_frame, channels="BGR")
+                                
+                            if stop_button:
+                                cap.release()  # Release the capture
+                                torch.cuda.empty_cache()  # Clear CUDA memory
+                                st.stop()  # Stop streamlit app
+
+                        # Display FPS in sidebar
+                            fps_display.metric("FPS", f"{fps:.2f}") 
+                        # Release the capture
+                        cap.release()
+
+                        
+                        # Clear CUDA memory
+                        torch.cuda.empty_cache()
+
+                        # Destroy window
+                        cv2.destroyAllWindows()
+
             # Web-cam
             elif options == 'Webcam':
                 cam_options = st.sidebar.selectbox('Webcam Channel', ('Select Channel', '0', '1', '2', '3'))
                 vid_file_name = int(cam_options)
-                st.write(vid_file_name)
+  
                 if not cam_options == 'Select Channel':
-                    pred1 = st.sidebar.button("Start")
-                    
-
-            if pred1:
-                class_names = list(model.names.values())# Convert dictionary to list of class names
-                selected_classes = st.sidebar.multiselect("Classes", class_names, default=class_names[:3],key='select_class')
-                    
-                with st.spinner("Predicting..."):
-                    fps_display = st.sidebar.empty()  # Placeholder for FPS display
-                    cap = cv2.VideoCapture(vid_file_name)
-                    st.write(vid_file_name)
-                    if not cap.isOpened():
-                        st.error("Could not open Video.")
-                    
-                    stop_button = st.button("Stop")  # Button to stop the inference
-
-                    while cap.isOpened():
-                        success, frame = cap.read()
-                        if not success:
-                            st.warning("Failed to read frame from webcam. Please make sure the webcam is connected properly.")
-                            break
-                        prev_time = time.time()
-
-                        # Multiselect box with class names and get indices of selected classes
-                        selected_ind = [class_names.index(option) for option in selected_classes]
-                        if not isinstance(selected_ind, list):  # Ensure selected_options is a list
-                            selected_ind = list(selected_ind)
-
-                        results = model.track(frame, conf=confidence, classes=selected_ind, persist=True)
-                        annotated_frame = results[0].plot()  # Add annotations on frame
-                        
-                        # Calculate model FPS
-                        curr_time = time.time()
-                        fps = 1 / (curr_time - prev_time)
-                        prev_time = curr_time
-                        # display frame
-                        org_frame.image(frame, channels="BGR")
-                        ann_frame.image(annotated_frame, channels="BGR")
-                            
-                        if stop_button:
-                            cap.release()  # Release the capture
-                            torch.cuda.empty_cache()  # Clear CUDA memory
-                            st.stop()  # Stop streamlit app
-
-                    # Display FPS in sidebar
-                        fps_display.metric("FPS", f"{fps:.2f}") 
-                    # Release the capture
-                    cap.release()
-
-                    
-                    # Clear CUDA memory
-                    torch.cuda.empty_cache()
-
-                    # Destroy window
-                    cv2.destroyAllWindows()
-
-            
-            
-
+                    pred2 = st.sidebar.button("Start")
+                    if pred2:
+                        webrtc_streamer(
+                    key="example",
+                    video_transformer_factory=lambda: MyVideoTransformer(confidence, model),
+                    rtc_configuration={"iceServers": [{"urls": ["stun:stun.l.google.com:19302"]}]},
+                    media_stream_constraints={"video": True, "audio": False},
+                    )                                                                 
+                
+                
             # RTSP
            # elif options == 'RTSP':
             #    rtsp_url = st.sidebar.text_input(
