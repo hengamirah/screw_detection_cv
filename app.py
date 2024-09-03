@@ -16,7 +16,7 @@ from PIL import Image
 from ultralytics import YOLO
 import io 
 import torch
-from streamlit-webrtc import webrtc_streamer, VideoTransformerBase
+from streamlit_webrtc import webrtc_streamer, VideoTransformerBase
 
 
 
