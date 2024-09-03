@@ -82,13 +82,14 @@ class MyVideoTransformer(VideoTransformerBase):
         img, current_no_class = get_yolo(img, self.model , self.conf , self.color_pick_list, self.class_labels, self.draw_thick)
         
         
-        processed_image2=(img, caption='Processed Video', channels="BGR", use_column_width=True)
+       
         self.org_fram.image(image, caption='Original Video', channels="BGR", use_column_width=True)
+        
         processed_image = self._display_detected_frames(image)
         self.ann_frame.image(processed_image, caption='Processed Video', channels="BGR", use_column_width=True)
+        st.image(img, caption='Processed Video 2', channels="BGR", use_column_width=True)
         
         
-        st.image(processed_image2, caption='Processed Video 2', channels="BGR", use_column_width=True)
         # Current number of classes
         class_fq = dict(Counter(i for sub in current_no_class for i in set(sub)))
         class_fq = json.dumps(class_fq, indent = 4)
