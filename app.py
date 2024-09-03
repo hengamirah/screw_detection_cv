@@ -79,7 +79,7 @@ class MyVideoTransformer(VideoTransformerBase):
 
     def recv(self, frame):
         image = frame.to_ndarray(format="bgr24")
-        img, current_no_class = get_yolo(img, self.model , self.conf , self.color_pick_list, self.class_labels, self.draw_thick)
+        img, current_no_class = get_yolo(image, self.model , self.conf , self.color_pick_list, self.class_labels, self.draw_thick)
         
         
         self.org_frame.image(image, caption='Original Video', channels="BGR", use_column_width=True)
