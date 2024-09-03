@@ -10,6 +10,7 @@ opencv-python-headless==4.8.1.78
 pandas==2.2.2
 
 lapx
+lapjv
 
 py-cpuinfo==9.0.0
 pyarrow==17.0.0
