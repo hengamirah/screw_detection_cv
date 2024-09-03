@@ -9,8 +9,8 @@ numpy==1.26.3
 opencv-python-headless==4.8.1.78
 pandas==2.2.2
 wheel
-lapx>=0.5.2
-lapjv
+#lapx>=0.5.2
+#lapjv
 
 py-cpuinfo==9.0.0
 pyarrow==17.0.0
