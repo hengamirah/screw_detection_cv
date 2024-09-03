@@ -68,14 +68,39 @@ def plot_one_box(x, img, color=None, label=None, line_thickness=3):
         cv2.putText(img, label, (c1[0], c1[1] - 2), 0, tl / 3, [225, 255, 255], thickness=tf, lineType=cv2.LINE_AA)
 
 class MyVideoTransformer(VideoTransformerBase):
-    def __init__(self, conf, model):
-        self.conf = conf
+    def __init__(self, conf, model,org_frame,ann_frame,color_pick_list, class_labels, draw_thick):
+        self.conf  = conf
         self.model = model
+        self.org_frame = org_frame
+        self.ann_frame = ann_frame
+        self.color_pick_list = color_pick_list
+        self.class_labels = class_labels
+        self.draw_thick = draw_thick
 
     def recv(self, frame):
         image = frame.to_ndarray(format="bgr24")
+        img, current_no_class = get_yolo(img, self.model , self.conf , self.color_pick_list, self.class_labels, self.draw_thick)
+        
+        
+        processed_image2=(img, caption='Processed Video', channels="BGR", use_column_width=True)
+        self.org_fram.image(image, caption='Original Video', channels="BGR", use_column_width=True)
         processed_image = self._display_detected_frames(image)
-        st.image(processed_image, caption='Detected Video', channels="BGR", use_column_width=True)
+        self.ann_frame.image(processed_image, caption='Processed Video', channels="BGR", use_column_width=True)
+        
+        
+        st.image(processed_image2, caption='Processed Video 2', channels="BGR", use_column_width=True)
+        # Current number of classes
+        class_fq = dict(Counter(i for sub in current_no_class for i in set(sub)))
+        class_fq = json.dumps(class_fq, indent = 4)
+        class_fq = json.loads(class_fq)
+        df_fq = pd.DataFrame(class_fq.items(), columns=['Class', 'Number'])
+            
+        # Updating Inference results
+        with st.container():
+            st.markdown("<h2>Inference Statistics</h2>", unsafe_allow_html=True)
+            st.markdown("<h3>Detected objects in curret Frame</h3>", unsafe_allow_html=True)
+            st.dataframe(df_fq, use_container_width=True)
+            
 
     def _display_detected_frames(self, image):
         orig_h, orig_w = image.shape[0:2]
@@ -96,7 +121,7 @@ class MyVideoTransformer(VideoTransformerBase):
 
 
 def predict():        
-    #p_time = 0
+    p_time = 0
 
 
     # Hide main menu style
@@ -176,16 +201,15 @@ def predict():
 
             # Draw thickness
             draw_thick = st.sidebar.slider('Draw Thickness:', min_value=1,max_value=20, value=2, key='draw_thick' )
+            color_pick_list = []
+            for i in range(len(class_labels)):
+                classname = class_labels[i]
+                color = color_picker_fn(classname, i)
+                color_pick_list.append(color)
 
             # Image
             if options == 'Image':
-                     
-                color_pick_list = []
-                for i in range(len(class_labels)):
-                    classname = class_labels[i]
-                    color = color_picker_fn(classname, i)
-                    color_pick_list.append(color)
-
+                             
                 upload_img_file = st.sidebar.file_uploader('Upload Image', type=['jpg', 'jpeg', 'png'],key ='image_uploader')
                 
                 if upload_img_file is not None:
@@ -248,7 +272,7 @@ def predict():
                         while cap.isOpened():
                             success, frame = cap.read()
                             if not success:
-                                st.warning("Failed to read frame from webcam. Please make sure the webcam is connected properly.")
+                                st.warning("Failed to read frame ")
                                 break
                             prev_time = time.time()
 
@@ -287,19 +311,19 @@ def predict():
 
             # Web-cam
             elif options == 'Webcam':
-                cam_options = st.sidebar.selectbox('Webcam Channel', ('Select Channel', '0', '1', '2', '3'))
+                #cam_options = st.sidebar.selectbox('Webcam Channel', ('Select Channel', '0', '1', '2', '3'))
                 
-                if not cam_options == 'Select Channel':
+                #if not cam_options == 'Select Channel':
                     #vid_file_name = int(cam_options)
-                    pred2 = st.sidebar.checkbox("Start")
-                    if pred2:
-                        webrtc_streamer(
-                    key="example",
-                    video_transformer_factory=lambda: MyVideoTransformer(confidence, model),
-                    rtc_configuration={"iceServers": [{"urls": ["stun:stun.l.google.com:19302"]}]},
-                    media_stream_constraints={"video": True, "audio": False},
-                    )                                                                 
-                
+                pred2 = st.sidebar.checkbox("Start")
+                if pred2:
+                    webrtc_streamer(
+                key="example",
+                video_transformer_factory=lambda: MyVideoTransformer(confidence, model,org_frame, ann_frame,color_pick_list, class_labels, draw_thick),
+                rtc_configuration={"iceServers": [{"urls": ["stun:stun.l.google.com:19302"]}]},
+                media_stream_constraints={"video": True, "audio": False},
+                )                                                                 
+            
                 
             # RTSP
            # elif options == 'RTSP':
