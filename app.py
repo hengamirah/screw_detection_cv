@@ -123,6 +123,9 @@ def predict():
     org_frame = col1.empty()
     ann_frame = col2.empty()
 
+    pred = False
+    pred1 = False
+
     if model_type!= 'Select Model':
         
         load = st.sidebar.checkbox("Load Model",key = 'Load Model')
