@@ -10,7 +10,7 @@ from collections import Counter
 import json
 import pandas as pd
 from PIL import ImageColor
-#from model_utils import get_system_stat
+from model_utils import get_system_stat
 import random
 from PIL import Image
 from ultralytics import YOLO
@@ -19,8 +19,7 @@ import torch
 from streamlit_webrtc import webrtc_streamer, VideoTransformerBase
 import os
 import sys
-# Add the 'lib' folder to the Python path
-sys.path.append(os.path.join(os.path.dirname(__file__), 'lap'))
+
 
 
 st.set_page_config(page_title="Amirah Streamlit App", layout="wide", initial_sidebar_state="auto")
@@ -123,7 +122,7 @@ class MyVideoTransformer(VideoTransformerBase):
         return input
 
 
-def predict():        
+def run_app():        
     p_time = 0
 
 
@@ -266,7 +265,7 @@ def predict():
                         
                         
                         cap = cv2.VideoCapture(vid_file_name)
-                        st.write(vid_file_name)
+                        
                         if not cap.isOpened():
                             st.error("Could not open Video.")
                         
@@ -275,11 +274,31 @@ def predict():
                         while cap.isOpened():
                             success, frame = cap.read()
                             if not success:
-                                st.warning("Failed to read frame ")
+                                st.warning("Frame Ended")
                                 break
-                            prev_time = time.time()
+                            #
+                            # prev_time = time.time()
+                            stframe1 = st.empty()
+                            stframe2 = st.empty()
+                            stframe3 = st.empty()
+                            img, current_no_class = get_yolo(img, model, confidence, color_pick_list, class_labels, draw_thick)
+                            st.image(img, channels='BGR')
 
-                            # Multiselect box with class names and get indices of selected classes
+                             # FPS
+                            c_time = time.time()
+                            fps = 1 / (c_time - p_time)
+                            p_time = c_time
+                        
+                            # Current number of classes
+                            class_fq = dict(Counter(i for sub in current_no_class for i in set(sub)))
+                            class_fq = json.dumps(class_fq, indent = 1)
+                            class_fq = json.loads(class_fq)
+                            df_fq = pd.DataFrame(class_fq.items(), columns=['Class', 'Quantity'])
+                            
+                            # Updating Inference results
+                            get_system_stat(stframe1, stframe2, stframe3, fps, df_fq)
+
+                                                # Multiselect box with class names and get indices of selected classes
                             selected_ind = [class_names.index(option) for option in selected_classes]
                             if not isinstance(selected_ind, list):  # Ensure selected_options is a list
                                 selected_ind = list(selected_ind)
@@ -339,7 +358,7 @@ def predict():
 
 # Main function call
 if __name__ == "__main__":
-    predict()
+    run_app()
 #
 # if (cap != None) and pred:
 #     stframe1 = st.empty()
