@@ -21,9 +21,6 @@ import os
 import sys
 
 
-
-st.set_page_config(page_title="Amirah Streamlit App", layout="wide", initial_sidebar_state="auto")
-
 def get_yolo(img, model, confidence, color_pick_list, class_labels, draw_thick):
                     
     current_no_class = []
@@ -68,6 +65,7 @@ def plot_one_box(x, img, color=None, label=None, line_thickness=3):
         c2 = c1[0] + t_size[0], c1[1] - t_size[1] - 3
         cv2.rectangle(img, c1, c2, color, -1, cv2.LINE_AA)  # filled
         cv2.putText(img, label, (c1[0], c1[1] - 2), 0, tl / 3, [225, 255, 255], thickness=tf, lineType=cv2.LINE_AA)
+
 
 class MyVideoTransformer(VideoTransformerBase):
     def __init__(self, conf, model,org_frame,ann_frame,color_pick_list, class_labels, draw_thick):
@@ -120,9 +118,11 @@ class MyVideoTransformer(VideoTransformerBase):
             return res_plotted
 
         return input
+def run_app(): 
 
+    st.set_page_config(page_title="Amirah Streamlit App", layout="wide", initial_sidebar_state="auto")
 
-def run_app():        
+       
     p_time = 0
 
 
