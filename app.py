@@ -276,17 +276,19 @@ def run_app():
                         stop_button = st.button("Stop")  # Button to stop the inference
 
                         while cap.isOpened():
+                            
                             success, frame = cap.read()
                             if not success:
                                 st.warning("Frame Ended")
                                 break
-                            #
-                            # prev_time = time.time()
                             stframe1 = st.empty()
                             stframe2 = st.empty()
                             stframe3 = st.empty()
+                            
+                            # prev_time = time.time()
+                            
                             #st.image(img, channels='BGR')
-                            img, current_no_class = get_yolo(frame, model, confidence, color_pick_list, class_labels, draw_thick)
+                            #img, current_no_class = get_yolo(frame, model, confidence, color_pick_list, class_labels, draw_thick)
                             
 
                             # FPS
@@ -300,10 +302,8 @@ def run_app():
                             class_fq = json.loads(class_fq)
                             df_fq = pd.DataFrame(class_fq.items(), columns=['Class', 'Quantity'])
                             
-                            # Updating Inference results
-                            get_system_stat(stframe1, stframe2, stframe3, fps, df_fq)
-
-                                                # Multiselect box with class names and get indices of selected classes
+                            
+                            # Multiselect box with class names and get indices of selected classes
                             selected_ind = [class_names.index(option) for option in selected_classes]
                             if not isinstance(selected_ind, list):  # Ensure selected_options is a list
                                 selected_ind = list(selected_ind)
@@ -311,7 +311,7 @@ def run_app():
                             results = model.track(frame, conf=confidence, classes=selected_ind, persist=True)
                             annotated_frame = results[0].plot()  # Add annotations on frame
                             
-                            
+                                
                             # display frame
                             org_frame.image(frame, channels="BGR")
                             ann_frame.image(annotated_frame, channels="BGR")
@@ -320,6 +320,9 @@ def run_app():
                                 cap.release()  # Release the capture
                                 torch.cuda.empty_cache()  # Clear CUDA memory
                                 st.stop()  # Stop streamlit app
+                            # Updating Inference results
+                            get_system_stat(stframe1, stframe2, stframe3, fps, df_fq)
+
 
                         # Display FPS in sidebar
                             fps_display.metric("FPS", f"{fps:.2f}") 
