@@ -52,7 +52,7 @@ def color_picker_fn(classname, key):
     return color
 
 
-def plot_one_box(x, img, color=None, label=None, line_thickness=3):
+def plot_one_box(x, img, color=None, label=None, line_thickness=3,options='image'):
     # Plots one bounding box on image img
     tl = line_thickness or round(0.002 * (img.shape[0] + img.shape[1]) / 2) + 1  # line/font thickness
     color = color or [random.randint(0, 255) for _ in range(3)]
@@ -208,10 +208,13 @@ def run_app():
             # Draw thickness
             draw_thick = st.sidebar.slider('Draw Thickness:', min_value=1,max_value=20, value=2, key='draw_thick' )
             color_pick_list = []
+            color_rev_list = []
             for i in range(len(class_labels)):
                 classname = class_labels[i]
                 color = color_picker_fn(classname, i)
+                color_rev = color.reverse()
                 color_pick_list.append(color)
+                color_rev_list.append(color_rev)
 
             # Image
             if options == 'Image':
@@ -248,6 +251,9 @@ def run_app():
             # Video
             elif options == 'Video':
                 upload_video_file = st.sidebar.file_uploader( 'Upload Video', type=['mp4', 'avi', 'mkv'],key ='vid_uploader')
+                
+                
+                
                 if upload_video_file is not None:
                     
                     g = io.BytesIO(upload_video_file.read()) # BytesIO Object
@@ -258,7 +264,7 @@ def run_app():
                     pred1 = st.sidebar.button("Start")
                     #tfile = tempfile.NamedTemporaryFile(delete=False)
                     #tfile.write(upload_video_file.read())
-            
+                
                 if pred1:
         
                     class_names = list(model.names.values())# Convert dictionary to list of class names
@@ -275,21 +281,23 @@ def run_app():
                         
                         stop_button = st.button("Stop")  # Button to stop the inference
 
-                        while cap.isOpened():
+                        while True: 
                             
                             success, frame = cap.read()
                             if not success:
                                 st.warning("Frame Ended")
                                 break
-                            stframe1 = st.empty()
-                            stframe2 = st.empty()
-                            stframe3 = st.empty()
+                            
+                            ##stframe1 = st.empty()
+                            #stframe2 = st.empty()
+                            #stframe3 = st.empty()
                             
                             # prev_time = time.time()
                             
-                            #st.image(img, channels='BGR')
-                            #img, current_no_class = get_yolo(frame, model, confidence, color_pick_list, class_labels, draw_thick)
-                            
+                            org_frame.image(frame,caption="Uploaded Video", channels="BGR")
+                            img, current_no_class = get_yolo(frame, model, confidence, color_rev_list, class_labels, draw_thick)
+                            ann_frame.image(img,caption= "Predicted Video", channels="BGR")
+                                
 
                             # FPS
                             c_time = time.time()
@@ -304,28 +312,28 @@ def run_app():
                             
                             
                             # Multiselect box with class names and get indices of selected classes
-                            selected_ind = [class_names.index(option) for option in selected_classes]
-                            if not isinstance(selected_ind, list):  # Ensure selected_options is a list
-                                selected_ind = list(selected_ind)
+                            #selected_ind = [class_names.index(option) for option in selected_classes]
+                            #if not isinstance(selected_ind, list):  # Ensure selected_options is a list
+                            #    selected_ind = list(selected_ind)
 
-                            results = model.track(frame, conf=confidence, classes=selected_ind, persist=True)
-                            annotated_frame = results[0].plot()  # Add annotations on frame
+                            #results = model.track(frame, conf=confidence, classes=selected_ind, persist=True)
+                            #annotated_frame = results[0].plot()  # Add annotations on frame
                             
                                 
                             # display frame
-                            org_frame.image(frame, channels="BGR")
-                            ann_frame.image(annotated_frame, channels="BGR")
+                            #org_frame.image(frame, channels="BGR")
+                            #ann_frame.image(annotated_frame, channels="BGR")
                                 
                             if stop_button:
                                 cap.release()  # Release the capture
                                 torch.cuda.empty_cache()  # Clear CUDA memory
                                 st.stop()  # Stop streamlit app
                             # Updating Inference results
-                            get_system_stat(stframe1, stframe2, stframe3, fps, df_fq)
+                            #get_system_stat(stframe1, stframe2, stframe3, fps, df_fq)
 
 
                         # Display FPS in sidebar
-                            fps_display.metric("FPS", f"{fps:.2f}") 
+                            #fps_display.metric("FPS", f"{fps:.2f}") 
                         # Release the capture
                         cap.release()
 
