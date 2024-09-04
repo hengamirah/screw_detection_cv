@@ -2,7 +2,7 @@
 from PIL import ImageColor
 import subprocess
 import streamlit as st
-#import psutil
+import psutil
 
 
 def get_gpu_memory():

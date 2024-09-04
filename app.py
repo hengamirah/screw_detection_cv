@@ -285,7 +285,7 @@ def run_app():
                             stframe1 = st.empty()
                             stframe2 = st.empty()
                             stframe3 = st.empty()
-                            st.image(img, channels='BGR')
+                            #st.image(img, channels='BGR')
                             img, current_no_class = get_yolo(frame, model, confidence, color_pick_list, class_labels, draw_thick)
                             
 
