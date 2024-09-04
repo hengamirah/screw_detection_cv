@@ -291,6 +291,7 @@ def run_app():
                     #vid_file_name = int(cam_options)
                 pred2 = st.sidebar.checkbox("Start")
                 if pred2:
+                    
                     ws = webrtc_streamer(
                         key="example",
                         video_frame_callback=video_frame_callback,
@@ -298,15 +299,15 @@ def run_app():
                         media_stream_constraints={"video": True, "audio": False},
                         )                                                                 
                     #org_frame.image(image, caption='Original Video', channels="BGR", use_column_width=True)
-                while ws.state.playing:
-                    with lock:
-                        img = img_container["img"]
-                    if img is None:
-                        continue
-                    org_frame.image(img,caption="Uploaded Video", channels="BGR")
-                    img, current_no_class = get_yolo(img, model, confidence, color_rev_list, class_labels, draw_thick)
-                    ann_frame.image(img,caption= "Predicted Video", channels="BGR")
-                          
+                    while ws.state.playing:
+                        with lock:
+                            img = img_container["img"]
+                        if img is None:
+                            continue
+                        org_frame.image(img,caption="Uploaded Video", channels="BGR")
+                        img, current_no_class = get_yolo(img, model, confidence, color_rev_list, class_labels, draw_thick)
+                        ann_frame.image(img,caption= "Predicted Video", channels="BGR")
+                            
         
             # RTSP
             elif options == 'RTSP':
