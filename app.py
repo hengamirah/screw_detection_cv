@@ -295,7 +295,7 @@ def run_app():
                         key="example",
                         video_frame_callback=video_frame_callback,
                         rtc_configuration={"iceServers": [{"urls": ["stun:stun.l.google.com:19302"]}]},
-                        media_stream_constraints={"video": False, "audio": False},
+                        media_stream_constraints={"video": True, "audio": False},
                         )                                                                 
                     #org_frame.image(image, caption='Original Video', channels="BGR", use_column_width=True)
                 while ws.state.playing:
