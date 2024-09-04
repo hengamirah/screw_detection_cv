@@ -18,7 +18,7 @@ import torch
 from streamlit_webrtc import webrtc_streamer, VideoTransformerBase
 import os
 import sys
-
+import threading
 
 def get_yolo(img, model, confidence, color_pick_list, class_labels, draw_thick):
                     
@@ -67,24 +67,26 @@ def plot_one_box(x, img, color=None, label=None, line_thickness=3,options='image
 
 
 class MyVideoTransformer(VideoTransformerBase):
-    def __init__(self, conf, model,org_frame,ann_frame,color_pick_list, class_labels, draw_thick):
+    def __init__(self, conf, model,color_pick_list, class_labels, draw_thick):
         self.conf  = conf
         self.model = model
-        self.org_frame = org_frame
-        self.ann_frame = ann_frame
         self.color_pick_list = color_pick_list
         self.class_labels = class_labels
         self.draw_thick = draw_thick
-
+        
     def recv(self, frame):
+        col1, col2 = st.columns([2,2])
+        org_frame = col1.empty()
+        ann_frame = col2.empty()
+        
         image = frame.to_ndarray(format="bgr24")
-        img, current_no_class = get_yolo(image, self.model , self.conf , self.color_pick_list, self.class_labels, self.draw_thick)
+        img, current_no_class = get_yolo(frame, self.model , self.conf , self.color_pick_list, self.class_labels, self.draw_thick)
         
         
-        self.org_frame.image(image, caption='Original Video', channels="BGR", use_column_width=True)
+        org_frame.image(frame, caption='Original Video', channels="BGR", use_column_width=True)
         
         processed_image = self._display_detected_frames(image)
-        self.ann_frame.image(processed_image, caption='Processed Video', channels="BGR", use_column_width=True)
+        ann_frame.image(processed_image, caption='Processed Video', channels="BGR", use_column_width=True)
         st.image(img, caption='Processed Video 2', channels="BGR", use_column_width=True)
         
         
@@ -118,6 +120,21 @@ class MyVideoTransformer(VideoTransformerBase):
 
         return input
 def run_app(): 
+   
+    lock = threading.Lock()
+    img_container = {"img": None}
+
+
+    def video_frame_callback(frame):
+        img = frame.to_ndarray(format="bgr24")
+        with lock:
+            img_container["img"] = img
+
+        return frame
+   
+   
+    
+   
     p_time = 0
     st.set_page_config(page_title="Amirah Streamlit App", layout="wide", initial_sidebar_state="auto")
 
@@ -212,9 +229,10 @@ def run_app():
             for i in range(len(class_labels)):
                 classname = class_labels[i]
                 color = color_picker_fn(classname, i)
-                color_rev = color.reverse()
+                color_rev = color[::-1]
                 color_pick_list.append(color)
                 color_rev_list.append(color_rev)
+            
 
             # Image
             if options == 'Image':
@@ -252,8 +270,6 @@ def run_app():
             elif options == 'Video':
                 upload_video_file = st.sidebar.file_uploader( 'Upload Video', type=['mp4', 'avi', 'mkv'],key ='vid_uploader')
                 
-                
-                
                 if upload_video_file is not None:
                     
                     g = io.BytesIO(upload_video_file.read()) # BytesIO Object
@@ -262,88 +278,11 @@ def run_app():
                         out.write(g.read())  # Read bytes into file
                     vid_file_name = "ultralytics.mp4"
                     pred1 = st.sidebar.button("Start")
+                    cap = cv2.VideoCapture(vid_file_name)
                     #tfile = tempfile.NamedTemporaryFile(delete=False)
                     #tfile.write(upload_video_file.read())
-                
-                if pred1:
         
-                    class_names = list(model.names.values())# Convert dictionary to list of class names
-                    selected_classes = st.sidebar.multiselect("Classes", class_names, default=class_names[:3],key='select_class')
-                        
-                    with st.spinner("Predicting..."):
-                        fps_display = st.sidebar.empty()  # Placeholder for FPS display
-                        
-                        
-                        cap = cv2.VideoCapture(vid_file_name)
-                        
-                        if not cap.isOpened():
-                            st.error("Could not open Video.")
-                        
-                        stop_button = st.button("Stop")  # Button to stop the inference
-
-                        while True: 
-                            
-                            success, frame = cap.read()
-                            if not success:
-                                st.warning("Frame Ended")
-                                break
-                            
-                            ##stframe1 = st.empty()
-                            #stframe2 = st.empty()
-                            #stframe3 = st.empty()
-                            
-                            # prev_time = time.time()
-                            
-                            org_frame.image(frame,caption="Uploaded Video", channels="BGR")
-                            img, current_no_class = get_yolo(frame, model, confidence, color_rev_list, class_labels, draw_thick)
-                            ann_frame.image(img,caption= "Predicted Video", channels="BGR")
-                                
-
-                            # FPS
-                            c_time = time.time()
-                            fps = 1 / (c_time - p_time)
-                            p_time = c_time
-                        
-                            # Current number of classes
-                            class_fq = dict(Counter(i for sub in current_no_class for i in set(sub)))
-                            class_fq = json.dumps(class_fq, indent = 1)
-                            class_fq = json.loads(class_fq)
-                            df_fq = pd.DataFrame(class_fq.items(), columns=['Class', 'Quantity'])
-                            
-                            
-                            # Multiselect box with class names and get indices of selected classes
-                            #selected_ind = [class_names.index(option) for option in selected_classes]
-                            #if not isinstance(selected_ind, list):  # Ensure selected_options is a list
-                            #    selected_ind = list(selected_ind)
-
-                            #results = model.track(frame, conf=confidence, classes=selected_ind, persist=True)
-                            #annotated_frame = results[0].plot()  # Add annotations on frame
-                            
-                                
-                            # display frame
-                            #org_frame.image(frame, channels="BGR")
-                            #ann_frame.image(annotated_frame, channels="BGR")
-                                
-                            if stop_button:
-                                cap.release()  # Release the capture
-                                torch.cuda.empty_cache()  # Clear CUDA memory
-                                st.stop()  # Stop streamlit app
-                            # Updating Inference results
-                            #get_system_stat(stframe1, stframe2, stframe3, fps, df_fq)
-
-
-                        # Display FPS in sidebar
-                            #fps_display.metric("FPS", f"{fps:.2f}") 
-                        # Release the capture
-                        cap.release()
-
-                        
-                        # Clear CUDA memory
-                        torch.cuda.empty_cache()
-
-                        # Destroy window
-                        cv2.destroyAllWindows()
-
+                   
             # Web-cam
             elif options == 'Webcam':
                 #cam_options = st.sidebar.selectbox('Webcam Channel', ('Select Channel', '0', '1', '2', '3'))
@@ -352,22 +291,107 @@ def run_app():
                     #vid_file_name = int(cam_options)
                 pred2 = st.sidebar.checkbox("Start")
                 if pred2:
-                    webrtc_streamer(
-                key="example",
-                video_transformer_factory=lambda: MyVideoTransformer(confidence, model,org_frame, ann_frame,color_pick_list, class_labels, draw_thick),
-                rtc_configuration={"iceServers": [{"urls": ["stun:stun.l.google.com:19302"]}]},
-                media_stream_constraints={"video": True, "audio": False},
-                )                                                                 
-            
-                
+                    ws = webrtc_streamer(
+                        key="example",
+                        video_frame_callback=video_frame_callback,
+                        rtc_configuration={"iceServers": [{"urls": ["stun:stun.l.google.com:19302"]}]},
+                        media_stream_constraints={"video": False, "audio": False},
+                        )                                                                 
+                    #org_frame.image(image, caption='Original Video', channels="BGR", use_column_width=True)
+                while ws.state.playing:
+                    with lock:
+                        img = img_container["img"]
+                    if img is None:
+                        continue
+                    org_frame.image(img,caption="Uploaded Video", channels="BGR")
+                    img, current_no_class = get_yolo(img, model, confidence, color_rev_list, class_labels, draw_thick)
+                    ann_frame.image(img,caption= "Predicted Video", channels="BGR")
+                          
+        
             # RTSP
-           # elif options == 'RTSP':
-            #    rtsp_url = st.sidebar.text_input(
-            #        'RTSP URL:',
-            #        'eg: rtsp://admin:name6666@198.162.1.58/cam/realmonitor?channel=0&subtype=0'
-            #    )
-            #    pred = st.sidebar.button("Start")
-            #    cap = cv2.VideoCapture(rtsp_url)
+            elif options == 'RTSP':
+                rtsp_url = st.sidebar.text_input(
+                    'RTSP URL:',
+                    'eg: rtsp://admin:name6666@198.162.1.58/cam/realmonitor?channel=0&subtype=0'
+                )
+                pred1 = st.sidebar.button("Start")
+                cap = cv2.VideoCapture(rtsp_url)
+            
+            if pred1 and  (cap is not None):
+        
+                class_names = list(model.names.values())# Convert dictionary to list of class names
+                selected_classes = st.sidebar.multiselect("Classes", class_names, default=class_names[:3],key='select_class')
+                        
+                with st.spinner("Predicting..."):
+                    fps_display = st.sidebar.empty()  # Placeholder for FPS display
+                    
+                    if not cap.isOpened():
+                        st.error("Could not open Video.")
+                    
+                    stop_button = st.button("Stop")  # Button to stop the inference
+
+                    while True: 
+                        
+                        success, frame = cap.read()
+                        if not success:
+                            st.warning("Frame Ended")
+                            break
+                        
+                        ##stframe1 = st.empty()
+                        #stframe2 = st.empty()
+                        #stframe3 = st.empty()
+                        
+                        # prev_time = time.time()
+                        
+                        org_frame.image(frame,caption="Uploaded Video", channels="BGR")
+                        img, current_no_class = get_yolo(frame, model, confidence, color_rev_list, class_labels, draw_thick)
+                        ann_frame.image(img,caption= "Predicted Video", channels="BGR")
+                            
+
+                        # FPS
+                        c_time = time.time()
+                        fps = 1 / (c_time - p_time)
+                        p_time = c_time
+                    
+                        # Current number of classes
+                        class_fq = dict(Counter(i for sub in current_no_class for i in set(sub)))
+                        class_fq = json.dumps(class_fq, indent = 1)
+                        class_fq = json.loads(class_fq)
+                        df_fq = pd.DataFrame(class_fq.items(), columns=['Class', 'Quantity'])
+                        
+                        
+                        # Multiselect box with class names and get indices of selected classes
+                        #selected_ind = [class_names.index(option) for option in selected_classes]
+                        #if not isinstance(selected_ind, list):  # Ensure selected_options is a list
+                        #    selected_ind = list(selected_ind)
+
+                        #results = model.track(frame, conf=confidence, classes=selected_ind, persist=True)
+                        #annotated_frame = results[0].plot()  # Add annotations on frame
+                        
+                            
+                        # display frame
+                        #org_frame.image(frame, channels="BGR")
+                        #ann_frame.image(annotated_frame, channels="BGR")
+                            
+                        if stop_button:
+                            cap.release()  # Release the capture
+                            torch.cuda.empty_cache()  # Clear CUDA memory
+                            st.stop()  # Stop streamlit app
+                        # Updating Inference results
+                        #get_system_stat(stframe1, stframe2, stframe3, fps, df_fq)
+
+
+                    # Display FPS in sidebar
+                        #fps_display.metric("FPS", f"{fps:.2f}") 
+                    # Release the capture
+                    cap.release()
+
+                    
+                    # Clear CUDA memory
+                    torch.cuda.empty_cache()
+
+                    # Destroy window
+                    cv2.destroyAllWindows()
 
 # Main function call
 if __name__ == "__main__":
