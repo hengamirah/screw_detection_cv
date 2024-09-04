@@ -5,7 +5,6 @@ import time
 import cv2
 import numpy as np
 import tempfile
-import time
 from collections import Counter
 import json
 import pandas as pd
@@ -119,11 +118,11 @@ class MyVideoTransformer(VideoTransformerBase):
 
         return input
 def run_app(): 
-
+    p_time = 0
     st.set_page_config(page_title="Amirah Streamlit App", layout="wide", initial_sidebar_state="auto")
 
        
-    p_time = 0
+    
 
 
     # Hide main menu style
@@ -190,7 +189,12 @@ def run_app():
 
         if load:
             with st.spinner("Model is downloading..."):
-                model = YOLO(path_model_file)
+                try:
+                    model = YOLO(path_model_file)
+                    print("Model loaded successfully!")
+                except Exception as e:
+                    print(f"Failed to load model: {e}")
+            
                 st.sidebar.success(f'Model loaded successfully!')
             # Load Class names
             class_labels = model.names
@@ -281,10 +285,11 @@ def run_app():
                             stframe1 = st.empty()
                             stframe2 = st.empty()
                             stframe3 = st.empty()
-                            img, current_no_class = get_yolo(img, model, confidence, color_pick_list, class_labels, draw_thick)
                             st.image(img, channels='BGR')
+                            img, current_no_class = get_yolo(frame, model, confidence, color_pick_list, class_labels, draw_thick)
+                            
 
-                             # FPS
+                            # FPS
                             c_time = time.time()
                             fps = 1 / (c_time - p_time)
                             p_time = c_time
@@ -306,10 +311,7 @@ def run_app():
                             results = model.track(frame, conf=confidence, classes=selected_ind, persist=True)
                             annotated_frame = results[0].plot()  # Add annotations on frame
                             
-                            # Calculate model FPS
-                            curr_time = time.time()
-                            fps = 1 / (curr_time - prev_time)
-                            prev_time = curr_time
+                            
                             # display frame
                             org_frame.image(frame, channels="BGR")
                             ann_frame.image(annotated_frame, channels="BGR")
