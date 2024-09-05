@@ -164,7 +164,7 @@ def run_app():
     st.markdown(sub_title_cfg, unsafe_allow_html=True)
             
     # Add ultralytics logo in sidebar
-    with st.sidebar:
+    #with st.sidebar:
         #logo = "msf_logo.png"
         #st.image(logo, width=250)
 
