@@ -165,8 +165,8 @@ def run_app():
             
     # Add ultralytics logo in sidebar
     with st.sidebar:
-        logo = "msf_logo.png"
-        st.image(logo, width=250)
+        #logo = "msf_logo.png"
+        #st.image(logo, width=250)
 
     st.sidebar.title('User Configuration')
         # Choose the model
