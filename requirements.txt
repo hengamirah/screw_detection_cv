@@ -39,7 +39,7 @@ streamlit-scrollable-textbox==0.0.3
 streamlit-toggle-switch==1.0.2
 streamlit-vertical-slider==2.5.5
 streamlit-webrtc
-git+https://github.com/TrackingLaboratory/lap
+#git+https://github.com/TrackingLaboratory/lap
 
 sympy==1.12
 tbb==2021.11.0
