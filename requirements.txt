@@ -1,4 +1,4 @@
-
+setuptools
 markdown-it-py==3.0.0
 MarkupSafe==2.1.5
 matplotlib==3.9.2
@@ -12,7 +12,6 @@ wheel
 lapx>=0.5.2
 #lapjv
 psutil
-setuptools
 
 py-cpuinfo==9.0.0
 pyarrow==17.0.0
