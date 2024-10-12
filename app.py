@@ -136,7 +136,7 @@ def run_app():
     
    
     p_time = 0
-    st.set_page_config(page_title="Amirah Streamlit App", layout="wide", initial_sidebar_state="auto")
+    st.set_page_config(page_title="Posture Streamlit App", layout="wide", initial_sidebar_state="auto")
 
        
     
@@ -148,13 +148,13 @@ def run_app():
     # Main title of streamlit application
     main_title_cfg = """<div><h1 style="color:#BF0000; text-align:center; font-size:40px; 
                                 font-family: 'Archivo', sans-serif; margin-top:-70px;margin-bottom:20px;">
-                    Computer Vision Detection App
+                     AI Body Posture for Drivers Detection App by UM-NTU G10
                     </h1></div>"""
 
     # Subtitle of streamlit application
     sub_title_cfg = """<div><h4 style="color:#f7b307; text-align:center; 
                     font-family: 'Archivo', sans-serif; margin-top:-30px; margin-bottom:10px;">
-                    Experience real-time object detection on your webcam, uploaded video or image! 🚀</h4>
+                    Experience real-time posture detection on your webcam, uploaded video or image! 🚀</h4>
                     </div>"""
     # Custom CSS for sidebar and main page
 
@@ -171,7 +171,7 @@ def run_app():
     st.sidebar.title('User Configuration')
         # Choose the model
     model_type = st.sidebar.selectbox(
-        'Choose YOLO Model', ('Select Model','Screw Detection', 'Upload Model')
+        'Choose YOLO Model', ('Select Model','Screw Detection', "Posture Model", 'Upload Model')
     )
 
     cap = None
@@ -185,7 +185,9 @@ def run_app():
     # YOLOv8 Model
     elif model_type == 'Screw Detection':
         path_model_file = "best.pt"
-        
+      
+    elif model_type == 'Posture Model':
+        path_model_file = "yolov8n-pose.pt"    
 
     elif model_type == 'Select Model':
         pass
@@ -304,7 +306,7 @@ def run_app():
                             img = img_container["img"]
                         if img is None:
                             continue
-                        org_frame.image(img,caption="Uploaded Video", channels="BGR")
+                        #org_frame.image(img,caption="Uploaded Video", channels="BGR")
                         img, current_no_class = get_yolo(img, model, confidence, color_rev_list, class_labels, draw_thick)
                         ann_frame.image(img,caption= "Predicted Video", channels="BGR")
                             
