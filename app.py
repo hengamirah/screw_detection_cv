@@ -187,7 +187,7 @@ def run_app():
         path_model_file = "best.pt"
       
     elif model_type == 'Posture Model':
-        path_model_file = "yolov8n-pose.pt"    
+        path_model_file = "sittingmodel.pt"    
 
     elif model_type == 'Select Model':
         pass
