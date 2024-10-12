@@ -119,6 +119,9 @@ class MyVideoTransformer(VideoTransformerBase):
             return res_plotted
 
         return input
+
+    # Define chunk size in frames
+    
 def run_app(): 
    
     lock = threading.Lock()
@@ -187,7 +190,7 @@ def run_app():
         path_model_file = "best.pt"
       
     elif model_type == 'Posture Model':
-        path_model_file = "sittingmodel.pt"    
+        path_model_file = "yolo11n-pose.pt"    
 
     elif model_type == 'Select Model':
         pass
@@ -202,7 +205,7 @@ def run_app():
     pred = False
     pred1 = False
     pred2 = False
-    if model_type!= 'Select Model':
+    if model_type!= 'Select Model' :
         
         load = st.sidebar.checkbox("Load Model",key = 'Load Model')
 
@@ -240,39 +243,61 @@ def run_app():
             if options == 'Image':
                              
                 upload_img_file = st.sidebar.file_uploader('Upload Image', type=['jpg', 'jpeg', 'png'],key ='image_uploader')
-                
-                if upload_img_file is not None:
-                    pred = st.button("Start")
-                    byte_data = upload_img_file.read()
-                    image = Image.open(upload_img_file)
-                    img= np.array(image)
-                    org_frame.image(upload_img_file,caption='Uploaded Image', channels="BGR", width=300)
-                    #st.image(upload_img_file, caption='Uploaded Image', use_column_width=True)  # Display the uploaded image in Streamlit
-                    # display frame
-                    
 
-                    if pred:
-                        with st.spinner("Predicting..."):
-                            img, current_no_class = get_yolo(img, model, confidence, color_pick_list, class_labels, draw_thick)    
-                            ann_frame.image(img,caption='Predicted Image', channels="RGB",width=300)
-                            #st.image(img, channels='BGR',use_column_width=True)
-                            # Current number of classes
-                            class_fq = dict(Counter(i for sub in current_no_class for i in set(sub)))
-                            class_fq = json.dumps(class_fq, indent = 4)
-                            class_fq = json.loads(class_fq)
-                            df_fq = pd.DataFrame(class_fq.items(), columns=['Class', 'Quantity'])
-                            
-                            # Updating Inference results
-                            with st.container():
-                                st.markdown("<h2>Inference Statistics</h2>", unsafe_allow_html=True)
-                                st.markdown("<h3>Detected objects in current Frame</h3>", unsafe_allow_html=True)
-                                st.dataframe(df_fq, use_container_width=True)
+                if model_type != 'Posture Model':
+                    if upload_img_file is not None:
+                        pred = st.button("Start")
+                        byte_data = upload_img_file.read()
+                        image = Image.open(upload_img_file)
+                        img= np.array(image)
+                        org_frame.image(upload_img_file,caption='Uploaded Image', channels="BGR", width=300)
+                        #st.image(upload_img_file, caption='Uploaded Image', use_column_width=True)  # Display the uploaded image in Streamlit
+                        # display frame
+                        
+    
+                        if pred:
+                            with st.spinner("Predicting..."):
+                                img, current_no_class = get_yolo(img, model, confidence, color_pick_list, class_labels, draw_thick)    
+                                ann_frame.image(img,caption='Predicted Image', channels="RGB",width=300)
+                                #st.image(img, channels='BGR',use_column_width=True)
+                                # Current number of classes
+                                class_fq = dict(Counter(i for sub in current_no_class for i in set(sub)))
+                                class_fq = json.dumps(class_fq, indent = 4)
+                                class_fq = json.loads(class_fq)
+                                df_fq = pd.DataFrame(class_fq.items(), columns=['Class', 'Quantity'])
+                                
+                                # Updating Inference results
+                                with st.container():
+                                    st.markdown("<h2>Inference Statistics</h2>", unsafe_allow_html=True)
+                                    st.markdown("<h3>Detected objects in current Frame</h3>", unsafe_allow_html=True)
+                                    st.dataframe(df_fq, use_container_width=True)
+                                  
+                elif model_type == 'Posture Model':
+                    if upload_img_file is not None:
+                        pred = st.button("Start")
+                        byte_data = upload_img_file.read()
+                        image = Image.open(upload_img_file)
+                        img= np.array(image)
+                        org_frame.image(upload_img_file,caption='Uploaded Image', channels="BGR", width=300)
+                        #st.image(upload_img_file, caption='Uploaded Image', use_column_width=True)  # Display the uploaded image in Streamlit
+                        # display frame
+                        
+    
+                        if pred:
+                            with st.spinner("Predicting..."):
+                                
+                                # Predict with the model
+                                results = model(upload_img_file)    
+                                ann_frame.image(results,caption='Predicted Image', channels="RGB",width=300)
+                                                              
+                          
+                        
 
             # Video
             elif options == 'Video':
                 upload_video_file = st.sidebar.file_uploader( 'Upload Video', type=['mp4', 'avi', 'mkv'],key ='vid_uploader')
                 
-                if upload_video_file is not None:
+                if upload_video_file is not None && model_type != 'Posture Model':
                     
                     g = io.BytesIO(upload_video_file.read()) # BytesIO Object
                     vid_location = "ultralytics.mp4"
@@ -284,7 +309,56 @@ def run_app():
                     #tfile = tempfile.NamedTemporaryFile(delete=False)
                     #tfile.write(upload_video_file.read())
         
-                   
+                 elif model_type == 'Posture Model':
+                    chunk_size = 100  # Adjust this value based on your needs
+                    g = io.BytesIO(upload_video_file.read()) # BytesIO Object
+                    vid_location = "ultralytics.mp4"
+                    with open(vid_location, "wb") as out:  # Open temporary file as bytes
+                        out.write(g.read())  # Read bytes into file
+                    vid_file_name = "ultralytics.mp4"
+                    pred1 = st.sidebar.button("Start")
+                    cap = cv2.VideoCapture(vid_file_name)
+                
+                    # Initialize result list
+                    merged_results = []
+                
+                    # Loop through video in chunks
+                    while True:
+                        # Read a chunk of frames
+                        frames = []
+                        for _ in range(chunk_size):
+                            ret, frame = cap.read()
+                            if not ret:
+                                break  # Reached end of video
+                            frames.append(frame)
+                
+                        # Check if frames were read
+                        if not frames:
+                            break
+                
+                        # Process the chunk of frames with Ultralytics
+                        results = model(frames, imgsz=320, conf=0.5)  # Assuming model accepts list of frames
+                
+                        # Merge results with previous results
+                        if merged_results:
+                            merged_results.extend(results)
+                        else:
+                            merged_results = results
+                
+                        # Release memory for processed frames
+                        for frame in frames:
+                            del frame
+                
+                        # Exit loop if video ends
+                        if not ret:
+                            break
+                
+                    # Release resources
+                    cap.release()
+                    cv2.destroyAllWindows()        # Open the video source
+                
+                
+                                           
             # Web-cam
             elif options == 'Webcam':
                 #cam_options = st.sidebar.selectbox('Webcam Channel', ('Select Channel', '0', '1', '2', '3'))
@@ -395,7 +469,9 @@ def run_app():
 
                     # Destroy window
                     cv2.destroyAllWindows()
-
+    
+    
+        
 # Main function call
 if __name__ == "__main__":
     run_app()
