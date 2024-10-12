@@ -12,7 +12,7 @@ wheel
 lapx>=0.5.2
 #lapjv
 psutil
-
+setuptools
 
 py-cpuinfo==9.0.0
 pyarrow==17.0.0
