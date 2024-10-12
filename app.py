@@ -306,7 +306,7 @@ def run_app():
                             img = img_container["img"]
                         if img is None:
                             continue
-                        #org_frame.image(img,caption="Uploaded Video", channels="BGR")
+                        org_frame.image(img,caption="Uploaded Video", channels="BGR")
                         img, current_no_class = get_yolo(img, model, confidence, color_rev_list, class_labels, draw_thick)
                         ann_frame.image(img,caption= "Predicted Video", channels="BGR")
                             
