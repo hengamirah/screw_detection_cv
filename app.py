@@ -297,7 +297,7 @@ def run_app():
             elif options == 'Video':
                 upload_video_file = st.sidebar.file_uploader( 'Upload Video', type=['mp4', 'avi', 'mkv'],key ='vid_uploader')
                 
-                if upload_video_file is not None && model_type != 'Posture Model':
+                if upload_video_file is not None and model_type != 'Posture Model':
                     
                     g = io.BytesIO(upload_video_file.read()) # BytesIO Object
                     vid_location = "ultralytics.mp4"
@@ -309,7 +309,7 @@ def run_app():
                     #tfile = tempfile.NamedTemporaryFile(delete=False)
                     #tfile.write(upload_video_file.read())
         
-                 elif model_type == 'Posture Model':
+                 elif  upload_video_file is not None and model_type == 'Posture Model':
                     chunk_size = 100  # Adjust this value based on your needs
                     g = io.BytesIO(upload_video_file.read()) # BytesIO Object
                     vid_location = "ultralytics.mp4"
