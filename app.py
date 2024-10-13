@@ -219,26 +219,26 @@ def run_app():
             
                 st.sidebar.success(f'Model loaded successfully!')
             # Load Class names
-            class_labels = model.names
-            
-            # Inference Mode
-            options = st.sidebar.radio('Options:', ('Webcam', 'Image', 'Video'), index=1, key='options')
-
-            # Confidence
-            confidence = st.sidebar.slider( 'Detection Confidence', min_value=0.0, max_value=1.0, value=0.25,key='confidence')
-
-            # Draw thickness
-            draw_thick = st.sidebar.slider('Draw Thickness:', min_value=1,max_value=20, value=2, key='draw_thick' )
-            color_pick_list = []
-            color_rev_list = []
-            for i in range(len(class_labels)):
-                classname = class_labels[i]
-                color = color_picker_fn(classname, i)
-                color_rev = color[::-1]
-                color_pick_list.append(color)
-                color_rev_list.append(color_rev)
-            
-
+            if model_type!= 'Posture Model' :
+                class_labels = model.names
+                
+                # Inference Mode
+                options = st.sidebar.radio('Options:', ('Webcam', 'Image', 'Video'), index=1, key='options')
+    
+                # Confidence
+                confidence = st.sidebar.slider( 'Detection Confidence', min_value=0.0, max_value=1.0, value=0.25,key='confidence')
+    
+                # Draw thickness
+                draw_thick = st.sidebar.slider('Draw Thickness:', min_value=1,max_value=20, value=2, key='draw_thick' )
+                color_pick_list = []
+                color_rev_list = []
+                for i in range(len(class_labels)):
+                    classname = class_labels[i]
+                    color = color_picker_fn(classname, i)
+                    color_rev = color[::-1]
+                    color_pick_list.append(color)
+                    color_rev_list.append(color_rev)
+                
             # Image
             if options == 'Image':
                              
