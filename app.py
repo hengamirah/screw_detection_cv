@@ -218,12 +218,13 @@ def run_app():
                     print(f"Failed to load model: {e}")
             
                 st.sidebar.success(f'Model loaded successfully!')
-            # Load Class names
+              # Inference Mode
+                options = st.sidebar.radio('Options:', ('Webcam', 'Image', 'Video'), index=1, key='options')
+    
+           
+          # Load Class names
             if model_type!= 'Posture Model' :
                 class_labels = model.names
-                
-                # Inference Mode
-                options = st.sidebar.radio('Options:', ('Webcam', 'Image', 'Video'), index=1, key='options')
     
                 # Confidence
                 confidence = st.sidebar.slider( 'Detection Confidence', min_value=0.0, max_value=1.0, value=0.25,key='confidence')
