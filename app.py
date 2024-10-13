@@ -222,7 +222,7 @@ def run_app():
             class_labels = model.names
             
             # Inference Mode
-            options = st.sidebar.radio('Options:', ('Webcam', 'Image', 'Video', 'RTSP'), index=1, key='options')
+            options = st.sidebar.radio('Options:', ('Webcam', 'Image', 'Video'), index=1, key='options')
 
             # Confidence
             confidence = st.sidebar.slider( 'Detection Confidence', min_value=0.0, max_value=1.0, value=0.25,key='confidence')
@@ -309,7 +309,7 @@ def run_app():
                     #tfile = tempfile.NamedTemporaryFile(delete=False)
                     #tfile.write(upload_video_file.read())
         
-                 elif  upload_video_file is not None and model_type == 'Posture Model':
+                elif  upload_video_file is not None and model_type == 'Posture Model':
                     chunk_size = 100  # Adjust this value based on your needs
                     g = io.BytesIO(upload_video_file.read()) # BytesIO Object
                     vid_location = "ultralytics.mp4"
